@@ -1,0 +1,536 @@
+---
+title: "Ecology Journal Bias"
+authors: Odalys Barrientos, Brianna Cirillo, Veronica Marquez
+output:
+  html_document:
+    df_print: paged
+---
+
+## Installing packages used
+
+```{r}
+#install.packages("vctrs")
+#install.packages("ggplot2",repos = c("http://rstudio.org/_packages","http://cran.rstudio.com"))
+library(ggplot2)
+#install.packages("gplots")
+library(gplots)
+#install.packages("mosaic")
+library(mosaic)
+#install.packages("usmap")
+library(usmap)
+#install.packages("RColorBrewer")
+library(RColorBrewer)
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("mosaic")
+library(mosaic)
+#install.packages("mosaicCore")
+library(mosaicCore)
+```
+
+# New Matrix of data 
+
+```{r}
+#our data is only 175 lines long 
+EcologyBias <- EcologyBias_Daneshgar_Popo_2_[1:175, ]
+EcologyBias # the name of our new matrix with all the data
+```
+
+# Contingency tables
+
+## Contingency table: Contient where the work was done
+
+```{r}
+continent.work <- as.vector(EcologyBias$`Continent where work done`) # removing the column of all the continents where the work was done and making it into a vector
+
+remove <- c ("Europe & Oceania", "META ANALYSIS","META ANALYSIS!") # removing these variables because it goes against the assumptions of a chisq test (mutually exclusive & independent)
+
+# (continent.work %in% remove) ---> creates a vector of TRUE and FALSE to remove the elements we do not want 
+continent.work <- continent.work [! continent.work %in% remove] # continent.work now has mutually exclusive and independent elements but contains NAs
+
+continent.work[43] <- "Oceania" # fixing a miss spelling error
+continent.work[61] <- "Oceania" # fixing a miss spelling error
+
+continent.work <- c(continent.work[1:97], continent.work[99:168]) # removing NAs
+# continent.work is not clean 
+# I made a vector with all the continents and excluded the NAs
+
+continent <- as.matrix(table(continent.work))
+continent
+```
+
+A contingency table was made to look at the number of journal articles, based off of the continent that the work for the article was done. The highest number of articles were from North America, where there were 95 journal articles. The lowest number of articles were from Australia, which had 2 journal articles.
+
+# Case 1
+
+## Chi-Square: Country where the work was done
+
+```{r}
+# Running Chi-Sq After removing Multiples
+
+# Making the column for country into a vector
+country.work <- as.vector(EcologyBias$`Country where the work is done`)
+
+# Printing the vector to look for the multiples we need to remove
+country.work
+
+# Creating a vector of the data names of what we need to remove
+remove <- c ("US and Mexico","Multiple???", "META ANALYSIS")
+
+# %in% returns a boolean TRUE if it is in remove, false if not
+country.work %in% remove
+
+# Removing everything in the remove vector from country.work
+country.work <- country.work [! country.work %in% remove]
+
+#Printing the vector to make sure we didn't miss anything
+country.work
+
+# This is changing 1-5 and 8-11 from US to USA so everything matches
+country.work[1:5] <- "USA"
+country.work[8:11] <- "USA"
+
+# Printing the vector to make sure it worked properly
+country.work
+
+# Removing any NA
+country.work <- country.work[!is.na(country.work)]
+
+# Printing the vector to make sure it worked properly
+country.work
+
+# Rerunning the contingency table to to look at the new counts
+tally(country.work)
+
+# Running the chi-squared on the new data
+xchisq.test(tally(country.work))
+
+```
+
+A contingency table was made to look at the number of journal articles, based off of the country that the work for the article was done. The highest number of articles were from the United States, where there were 68 journal articles. The majority of the other countries only had one or two journal articles from each. From the chi-squared test shows that the probability of each country being represented in a journal entry is not the same $(P<2.2e-16)$.
+
+## Chi-Square: Region where the work was done
+
+```{r}
+# Making the column for region into a vector
+region.work <- as.vector(EcologyBias$`Regions where the work was done  (Popo defines)`)
+
+# Printing the vector to look for the multiples we need to remove
+region.work
+
+# Creating a vector of the data names of what we need to remove
+remove <- c ("Multiple", "META ANALYSIS", "Multiple Ranges")
+
+# %in% returns a boolean TRUE if it is in remove, false if not
+region.work %in% remove
+
+# Removing everything in the remove vector from region.work
+region.work <- region.work [! region.work %in% remove]
+
+#Printing the vector to make sure we didn't miss anything
+region.work
+
+# Removing any NA
+region.work <- region.work[!is.na(region.work)]
+
+# Printing the vector to make sure it worked properly
+region.work
+
+# Rerunning the contingency table to to look at the new counts
+tally(region.work)
+
+# Running the chi-squared on the new data
+chisq.test(tally(region.work))
+```
+
+A contingency table was made to look at the number of journal articles, based off of the region that the work for the article was done. The highest number of articles were from the Pacific, where there were 24 journal articles. The lowest number of journal articles were from the North-West and Mid-South, which had 1 journal article each. The chi-squared test shows that the probability of each country being represented in a journal entry is not the same $(P<3.171e-11)$.
+
+
+## Chi-Square: State where the work was done
+
+```{r}
+# Making the column for state into a vector
+state.work <- as.vector(EcologyBias$`State or Municipality where the work was done`)
+
+# Creating a vector of the data names of what we need to remove
+remove <- c ("Multiple States", "Multiple", "META ANALYSIS", "OR/CA", "GA/FL", "NY, MA, CT")
+
+# Removing everything in the remove vector from state.work
+state.work %in% remove
+state.work <- state.work [! state.work %in% remove]
+
+# Removing any NA
+state.work <- state.work[!is.na(state.work)]
+
+# Rerunning the contingency table to to look at the new counts
+tally(state.work)
+
+# Running the chi-squared on the new data
+chisq.test(tally(state.work))
+```
+
+A contingency table was made to look at the number of journal articles, based off of the state in the United States that the work for the article was done. The highest number of articles were from California, where there were 13 journal articles. The majority of the other states only had one or two journal articles from each. From the chi-squared test shows that the probability of each state being represented in a journal entry is not the same $(P<3.284e-05)$.
+
+
+## Chi-Square: Ecosystem (Marine, Terrestrial, Freshwater, Mixed)
+
+```{r}
+# Making the column for ecosystem into a vector
+ecosystem.MTF <- as.vector(EcologyBias$`Marine, Terrestrial, Freshwater, Mixed`)
+
+# Printing the vector to look for data names we need to remove
+ecosystem.MTF
+
+# Creating a vector of the data names of what we need to remove
+remove <- c ("Mixed")
+
+# Removing everything in the remove vector from ecosystem.MTF
+ecosystem.MTF %in% remove
+ecosystem.MTF <- ecosystem.MTF [! ecosystem.MTF %in% remove]
+
+# Removing any NA
+ecosystem.MTF <- ecosystem.MTF [!is.na(ecosystem.MTF)]
+
+# Rerunning the contingency table to to look at the new counts
+tally(ecosystem.MTF)
+
+# Running the chi-squared on the new data
+chisq.test(tally(ecosystem.MTF))
+```
+
+A contingency table was made to look at the number of journal articles, based off of whether the research was done in freshwater, marine, or terrestrial. The highest number of articles were from terrestrial, where there were 127 journal articles. The lowest number of journal articles were from freshwater, with 12 journal articles. From the chi-squared test shows that the probability of each ecosystem being represented in a journal entry is not the same $(P<2.2e-16)$.
+
+
+# Chi-squared test: Continent where the work was done
+
+```{r}
+tally(continent.work)
+
+xchisq.test(tally(continent.work))
+# we cannot use the pvalue because the test assumes randomness (our data is not random)
+# we can use the observed frequency, expected frequency, and the pearson residual to show that all the continents are not equally represented
+```
+
+North America has the most positive residual thus the observed frequency of journal entries exceeded the expected frequency. Australia has the most negative residual thus the observed frequency of journal entries did not meet the expected frequency.
+
+
+```{r}
+par(mfrow=c(1,2))
+
+mypalette<-brewer.pal(7,"BuGn") # this uses a package to change the color pallet
+
+# what we expect the pie chart to look like based off of our expected values in chisq test
+slicesExp <- rep(23.86, length.out = 7)
+lbls <- c("Africa ", "Asia","Australia ", "Europe ","North America ","Oceania","South America"  )
+pie(slicesExp, labels = lbls, main = "Pie Chart of Continent EXPECTED", col = mypalette )
+
+# what we the pie chart actually looks like based off of our observed values in chisq test
+slicesExp <- c(tally(continent.work))
+lbls <- c("Africa ", "Asia","Australia ", "Europe ","North America ","Oceania","South America"  )
+pie(slicesExp, labels = lbls, main = "Pie Chart of Continent OBSERVED" , col = mypalette)
+```
+
+
+# Case 2
+## Chi-squared test: Continent where the work was done
+```{r}
+sm.continent <- c(SqrMileage$`Sq. mi (million mi^2)`) # data of the sqr mileage for each continent in a vector
+sm.continent <- as.numeric(sm.continent[2:8]) # making a numerical vector (was a string before)
+prop.cont <- sm.continent/sum(sm.continent) # the proportion we expect each continent to follow based off of its sqr mileage
+# we set p = prop.cont since we are niw assuming the observed frequency should match the proportion of its sqr mileage 
+
+xchisq.test(tally(continent.work),p=prop.cont )
+# we cannot use the pvalue because the test assumes randomness (our data is not random)
+# we can use the observed frequency, expected frequency, and the pearson residual to show that all the continents are not represented basded off of their sqr mileage
+```
+
+USA has the most positive residual thus the observed frequency of journal articles exceeded the expected frequency. While, Belgium, Bermuda, Britain, Cambodia, England, French Guiana, Galapagos, Greece, Italy, Papua New Guinea , Portugal, Republic of Congo, Singapore, St. John, Svalbard had the most negative residual thus the observed frequency of journal articles did not meet the expected frequency.
+
+```{r}
+par(mfrow=c(1,2))
+E <- c(35.26, 51.73, 8.93, 11.82, 28.67, 9.89, 20.70)
+CS <- c("Africa", "Asia", "Aust", "Europe", "NA", "Oceania", "SA")
+barplot(E, names.arg = CS, xlab ="Continent", ylab = " # of Journals", col = "grey", main = "Expected # Journals in Continent w/ Sq. Mileage", border = "black")
+
+O <- c(5,14,2,34,94,5,13)
+C <- c("Africa", "Asia", "Aust", "Europe", "NA", "Oceania", "SA")
+barplot(O, names.arg = C, xlab ="Continent", ylab = " # of Journals", col = "grey", main = "Observed # Journals in Continent w/ Sq. Mileage", border = "black")
+```
+
+
+## Chi-Square: Country where the work was done
+
+```{r}
+country.work <- as.vector(EcologyBias$`Country where the work is done`) # removing the column of country where the work was done and making it into a vector
+
+remove <- c ("Brazil/Costa Rica/Puerto Rico", "Germany & New Zealand","Lesser Antilles/Guadelupe", "META ANALYSIS", "Multiple???", "US and Mexico", "Trinidad and Tobago") # removing these variables because it goes against the assumptions of a chisq test (mutually exclusive & independent)
+
+# (continent.work %in% remove) ---> creates a vector of TRUE and FALSE to remove the elements we do not want 
+country.work <- country.work [! country.work %in% remove] # country.work now has mutually exclusive and independent elements but contains NAs
+
+country.work[1:5] <- "USA" # fixing a spelling error
+country.work[8:11] <- "USA" # fixing a spelling error
+
+country.work <- c(country.work[1:25], country.work[27:34], country.work[36:77], country.work[79:95], country.work[97:121], country.work[123:144], country.work[146:168]) # removing NAs
+# country.work is not clean 
+# I made a vector with all the countries and excluded the NAs
+
+country <- as.matrix(table(country.work))
+tally(country.work)
+country
+```
+
+
+# Case 1
+
+
+## Chi-squared test: Country where the work was done
+
+```{r}
+xchisq.test(tally(country.work), simulate.p.value=TRUE)
+# we cannot use the pvalue because the test assumes randomness (our data is not random)
+# we can use the observed frequency, expected frequency, and the pearson residual to show that all the countries are not equally represented
+# we are setting simulate.p.value = TRUE because we have MANY categories 
+```
+
+```{r}
+par(mfrow=c(1,2))
+
+mypalette<-brewer.pal(37,"PuBu") # this uses a package to change the color pallet
+
+# what we expect the pie chart to look like based off of our expected values in chisq test
+slicesExp <- rep(4.38, length.out = 37)
+lbls <- c("Argentina","Australia","Belgium","Bermuda" ,"Brazil","Britain","Cambodia","Canada","China","Colombia","Costa Rica","England","Finland","France","French Guiana","Galapagos","Germany","Greece","Italy","Kenya","Mexico","New Zealand","Panama","Papua New Guinea","Peru","Portugal","Puerto Rico","Republic of Congo","Singapore","South Africa","Spain","St. John","Svalbard","Sweden","Switzerland","The Netherlands","USA")
+pie(slicesExp,labels = "", main = "Pie Chart of Country EXPECTED", col = mypalette )
+
+# what we the pie chart actually looks like based off of our observed values in chisq test
+slicesExp <- c(tally(country.work))
+lbls <- c("Argentina","Australia","Belgium","Bermuda" ,"Brazil","Britain","Cambodia","Canada","China","Colombia","Costa Rica","England","Finland","France","French Guiana","Galapagos","Germany","Greece","Italy","Kenya","Mexico","New Zealand","Panama","Papua New Guinea","Peru","Portugal","Puerto Rico","Republic of Congo","Singapore","South Africa","Spain","St. John","Svalbard","Sweden","Switzerland","The Netherlands","USA")
+lbls1 <- c("","","","" ,"","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","USA")
+pie(slicesExp, labels = lbls1, main = "Pie Chart of Country OBSERVED" , col = mypalette)
+```
+
+## Contingency table: Region where the work was done
+
+```{r}
+region.work <- as.vector(EcologyBias$`Regions where the work was done  (Popo defines)`)# removing the column of region where the work was done and making it into a vector
+
+remove <- c ("Multiple", "META ANALYSIS", "Multiple Ranges")# removing these variables because it goes against the assumptions of a chisq test (mutually exclusive & independent)
+
+# (region.work %in% remove) ---> creates a vector of TRUE and FALSE to remove the elements we do not want
+region.work <- region.work [! region.work %in% remove] # region.work now has mutually exclusive and independent elements but contains NAs
+
+region.work <- region.work[!is.na(region.work)] # removing NAs
+
+region <- as.matrix(table(region.work))
+region
+```
+
+# Case 1: Without Square Mileage
+
+## Chi-squared test: Region where the work was done
+
+```{r}
+xchisq.test(tally(region.work))
+# we cannot use the pvalue because the test assumes randomness (our data is not random)
+# we can use the observed frequency, expected frequency, and the pearson residual to show that all the regions are not equally represented
+```
+
+
+
+```{r}
+par(mfrow=c(1,2))
+
+region.col<-brewer.pal(7,"PuBuGn") # this uses a package to change the color pallet
+
+# what we expect the pie chart to look like based off of our expected values in chisq test
+Region.Obs <- c(6.70,6.70,6.70,6.70,6.70,6.70,6.70, 6.70, 6.70, 6.70)
+R.names <- c("E.NC", "Mid-A", "Mid-S", "Mt", "NE", " NW", "PT", "S.Atl", "W.NC", "W.SC")
+pie(Region.Obs, labels = R.names, main="Pie Chart of Region (Expected)", col = region.col)
+
+# what we the pie chart actually looks like based off of our observed values in chisq test
+Region.Obs <- c(7,3,1,12,3,1,24, 10, 3, 3)
+R.names <- c("E.NC", "Mid-A", "Mid-S", "Mt", "NE", " NW", "PT", "S.Atl", "W.NC", "W.SC")
+pie(Region.Obs, labels = R.names, main="Pie Chart of Region (Observed)", col=region.col)
+    
+```
+
+
+# Case 2: With Square Mileage
+
+## Chi-squared test: Region where the work was done
+
+```{r}
+sm.region <- c(SqrMileage$`Sq. mi2 (mi^2)`)# data of the sqr mileage for each region in a vector
+
+sm.region <- as.numeric(sm.region[1:9])# we were only able to find the sqr mileage for 9 regions so we took out the 10th region
+
+prop.region <- sm.region/sum(sm.region)# the proportion we expect each region to follow based off of its sqr mileage
+# we set p = prop.regiont since we are now assuming the observed frequency should match the proportion of its sqr mileage 
+
+xchisq.test(tally(region.work)[1:9],p=prop.region, simulate.p.value = TRUE)
+```
+
+
+
+```{r}
+par(mfrow=c(2,1))
+
+# what we expect the bar graph to look like based expected values in chisqr test
+RegionSM.Exp <- c(5.54,3.54,15.85,1.33,0.10,16.58,5.42, 9.41, 8.23)
+Region <- c("E.NC", "MA",  "Mt", "NE", " NW", "PT", "S.Atl", "W.NC", "W.SC")
+barPlot1 <- barplot(RegionSM.Exp, names.arg = Region, xlab ="Region", ylab = " # of Journals", col = "dark green", main = "Expected # of Journals in each Region based on Sqr. Mileage", border = "black")
+
+# what the pie chart looks like based off our observed value in chisqr test
+RegionSM.Obs <- c(7,1,12,3,1,24, 10, 3, 3)
+Region <- c("E.NC", "MA",  "Mt", "NE", " NW", "PT", "S.Atl", "W.NC", "W.SC")
+barPlot1 <- barplot(RegionSM.Obs, names.arg = Region, xlab ="Region", ylab = " # of Journals", col = "dark green", main = "Observed # of Journals in each Region based on Sqr. Mileage", border = "black")
+```
+
+
+## Contingency table: State where the work was done
+
+```{r}
+state.work <- as.vector(EcologyBias$`State or Municipality where the work was done`)# removing the column of state where the work was done and making it into a vector
+
+remove <- c ("Multiple States", "Multiple", "META ANALYSIS", "OR/CA", "GA/FL", "NY, MA, CT")# removing these variables because it goes against the assumptions of a chisq test (mutually exclusive & independent)
+
+# (state.work %in% remove) ---> creates a vector of TRUE and FALSE to remove the elements we do not want
+state.work <- state.work [! state.work %in% remove]# state.work now has mutually exclusive and independent elements but contains NAs
+
+state.work <- state.work[!is.na(state.work)] # removing NAs
+
+state <- as.matrix(table(state.work))
+state <- state[-22,] # removing Puerto Rico we did not take this state into account (only the 50 states)
+# we only have 26 states so I will make a vector that has zeros for the 24 states that were never mentioned (we need all 50 states in order to compare them all by sqr mileage)
+missing.states <- rep(0, length.out=24)
+total.state.counts <- c(state,missing.states)
+
+state
+
+```
+
+
+
+# Case 2
+
+## Chi-squared test: State where the work was done
+
+```{r}
+sm.state <- c(SquareMileage$stateSQM[1:50]) # data of the sqr mileage for all 50 states in a vector
+
+prop.state <- sm.state/sum(sm.state)# the proportion we expect each state to follow based off of its sqr mileage
+# we set p = prop.state since we are niw assuming the observed frequency should match the proportion of its sqr mileage 
+
+xchisq.test(total.state.counts,p=prop.state, simulate.p.value = TRUE )
+# we cannot use the pvalue because the test assumes randomness (our data is not random)
+# we can use the observed frequency, expected frequency, and the pearson residual to show that all the states are not represented based off of their sqr mileage
+
+```
+
+
+
+```{r}
+library(usmap)
+data.states <- as.data.frame(matrix(data=c(SquareMileage$state.In.Order[1:50], SquareMileage$SM.IN.ORDER[1:50]), nrow=50, ncol=2)) # this package takes a data frame the first column are the states and the second column is the square mileage for that state (in the excel sheet it is in order from greatest to least)
+
+colnames(data.states)[1] <- "state" # naming the first column state
+colnames(data.states)[2] <- "level" # naming the second column level
+
+# this package cannot take large numbers and put them in order so I assigned 9 levels
+# level 1 means the lowest sqr mileage 
+# level 9 means the highest sqr mileage 
+data.states[1:6,2] <- 9 
+data.states[7:12,2] <- 8
+data.states[13:18,2] <- 7
+data.states[19:24,2] <- 6
+data.states[25:30,2] <- 5
+data.states[31:36,2] <- 4
+data.states[37:42,2] <- 3
+data.states[43:48,2] <- 2
+data.states[49:50,2] <- 1
+
+data.counts <- as.data.frame(matrix(data=c(SquareMileage$`U.S. States`[1:26], SquareMileage$Counts[1:26]), nrow=26, ncol=2)) # this package takes a data frame the first column are the states in the same order as the contintengency table and the second column is the counts (the number of times a state appeard)
+# only 26 rows because we only had counts for 26 states 
+colnames(data.counts)[1] <- "state" # naming the first colum state
+colnames(data.counts)[2] <- "counts" # naming the second column count
+
+par(mfrow=c(1,2))
+# map of what we expect the frequency to look like based off of sqr mileage
+plot_usmap(data = data.states, values="level", color="black")+theme(legend.position = "right")
+# map of the observed frequency
+plot_usmap(data = data.counts, values="counts", color="black")+theme(legend.position = "right")
+```
+
+
+
+## Contingency table: Ecosystems (Marine, Terrestrial, Freshwater)
+
+```{r}
+eco.po <- as.vector(EcologyBias$`Marine, Terrestrial, Freshwater, Mixed`)# removing the column of ecosystem based on (marine, terrestrial, freshwater) and making it into a vector
+
+remove <- c ("Mixed") # removing the mixed option because it goes against the assumptions of a chisq test (mutually exclusive & independent)
+
+# (eco.po %in% remove) ---> creates a vector of TRUE and FALSE to remove the elements we do not want
+eco.po <- eco.po [! eco.po %in% remove] # eco.po now has mutually exclusive and independent elements 
+
+eco.po <- as.matrix(table(eco.po))
+
+eco.po
+```
+
+
+# Case 1
+
+## Chi-squared test: Ecosystems
+
+```{r}
+xchisq.test(eco.po)
+# we cannot use the pvalue because the test assumes randomness (our data is not random)
+# we can use the observed frequency, expected frequency, and the pearson residual to show that all the ecosystems are not equally represented 
+
+```
+
+
+
+```{r}
+par(mfrow=c(1,2))
+eco.col<-brewer.pal(7,"YlGn") # this uses a package to change the color pallet
+
+slices.exp <- c(53,53,53)
+lbls <- c("Marine", "Terrestrial", "Freshwater")
+pie(slices.exp, labels = lbls, main="Pie Chart of Ecosystem (Expected)", col=eco.col)
+
+slices <- c(20,127,12)
+pie(slices, labels = lbls, main="Pie Chart of Ecosystem (Observed)", col = eco.col)
+```
+
+
+# Case 2
+
+## Chi-squared test: Ecosystems
+
+```{r}
+prop.ecosystem <- c(EcoSqrMileage$`Percent Coverage`)
+
+
+xchisq.test(eco.po,p=prop.ecosystem, simulate.p.value = TRUE ) 
+# we cannot use the pvalue because the test assumes randomness (our data is not random)
+# we can use the observed frequency, expected frequency, and the pearson residual to show that all the ecosystems are not equally represented 
+```
+
+
+
+```{r}
+par(mfrow=c(1,2))
+e.col<-brewer.pal(7,"Blues") # this uses a package to change the color pallet
+
+slicesExp <- c(111.30,44.36,3.34)
+lbls <- c("Marine", "Terrestrial", "Freshwater")
+pie(slicesExp, labels = lbls, main="Pie Chart of Ecosystem (Expected)",col=e.col)
+
+slices <- c(20,127,12)
+pie(slices, labels = lbls, main="Pie Chart of Ecosystem (Observed)", col = e.col)
+
+```
+
